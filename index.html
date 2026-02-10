@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Contact Manager</h1>
+        
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search by name or email..." class="search-input">
+        </div>
+
+        <!-- Contact Form -->
+        <div class="form-container">
+            <h2 id="formTitle">Add New Contact</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" placeholder="Enter name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" placeholder="Enter email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="tel" id="phone" placeholder="Enter phone number" required>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="submit" id="submitBtn" class="btn btn-primary">Add Contact</button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Contacts List -->
+        <div class="contacts-container">
+            <div class="contacts-header">
+                <h2>Contact List</h2>
+
+            </div>
+            <div id="contactsList" class="contacts-list grid-view"></div>
+            <div id="emptyState" class="empty-state">
+                <p>No contacts yet. Add your first contact above!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Compose Modal -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Compose Email</h2>
+                <button class="modal-close" onclick="closeEmailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label for="emailTo">To:</label>
+                        <input type="email" id="emailTo" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="emailSubject">Subject:</label>
+                        <input type="text" id="emailSubject" placeholder="Enter email subject" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="emailBody">Message:</label>
+                        <textarea id="emailBody" rows="10" placeholder="Enter your message here..." required></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                            Send via Gmail
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
