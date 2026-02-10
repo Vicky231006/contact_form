@@ -45,7 +45,7 @@
         <div class="contacts-container">
             <div class="contacts-header">
                 <h2>Contact List</h2>
-
+                
             </div>
             <div id="contactsList" class="contacts-list grid-view"></div>
             <div id="emptyState" class="empty-state">
@@ -87,6 +87,9 @@
                             Send via Gmail
                         </button>
                         <button type="button" class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+                    </div>
+                    <div id="gmailFallbackContainer" style="display:none; margin-top:12px;">
+                        <a id="gmailFallback" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Open Gmail compose in a new tab</a>
                     </div>
                 </form>
             </div>

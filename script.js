@@ -18,6 +18,9 @@ const emailForm = document.getElementById('emailForm');
 const emailTo = document.getElementById('emailTo');
 const emailSubject = document.getElementById('emailSubject');
 const emailBody = document.getElementById('emailBody');
+// Fallback UI elements for blocked popups
+const gmailFallback = document.getElementById('gmailFallback');
+const gmailFallbackContainer = document.getElementById('gmailFallbackContainer');
 
 // State variables
 let contacts = [];
@@ -312,6 +315,11 @@ function sendEmail(index) {
     
     // Show the modal
     emailModal.classList.add('active');
+    // Hide any previous fallback link
+    if (gmailFallbackContainer) {
+        gmailFallbackContainer.style.display = 'none';
+        gmailFallback.href = '#';
+    }
     emailSubject.focus();
 }
 
@@ -332,10 +340,84 @@ function handleEmailSubmit(e) {
     // Construct Gmail URL with user's custom content
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`;
     
-    // Open Gmail in new tab
-    window.open(gmailUrl, '_blank');
-    
-    // Close the modal
+    // Try opening Gmail in a new tab. Some browsers/extensions may block popups.
+    let opened = false;
+
+    try {
+        const newWin = window.open(gmailUrl, '_blank');
+        if (newWin) {
+            opened = true;
+        }
+    } catch (err) {
+        opened = false;
+    }
+
+    // Fallback: try a programmatic anchor click (sometimes works when window.open is blocked)
+    if (!opened) {
+        try {
+            const a = document.createElement('a');
+            a.href = gmailUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            opened = true;
+        } catch (err) {
+            opened = false;
+        }
+    }
+
+    // If still blocked, try opening the user's default mail client via mailto
+    if (!opened) {
+        const recipientPlain = emailTo.value.trim();
+        const mailtoUrl = `mailto:${recipientPlain}?subject=${subject}&body=${body}`;
+
+        let mailtoAttempted = false;
+        try {
+            const a2 = document.createElement('a');
+            a2.href = mailtoUrl;
+            a2.style.display = 'none';
+            document.body.appendChild(a2);
+            a2.click();
+            document.body.removeChild(a2);
+            mailtoAttempted = true;
+        } catch (err) {
+            mailtoAttempted = false;
+        }
+
+        // If mailto attempt likely worked, close modal and exit
+        if (mailtoAttempted) {
+            closeEmailModal();
+            return;
+        }
+
+        // Otherwise show persistent fallback link (mailto) and copy to clipboard
+        if (gmailFallback && gmailFallbackContainer) {
+            gmailFallback.href = mailtoUrl;
+            gmailFallback.textContent = 'Open default mail client';
+            gmailFallbackContainer.style.display = 'block';
+            try { gmailFallback.focus(); } catch (e) {}
+        }
+
+        const fallbackMessage = 'Automatic opening failed. Click the "Open default mail client" button or paste the copied mailto URL into a new tab.';
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(mailtoUrl).then(() => {
+                alert(fallbackMessage + ' The mailto URL was copied to your clipboard.');
+            }).catch(() => {
+                alert(fallbackMessage + ' If copying failed, paste this URL into a new tab: ' + mailtoUrl);
+            });
+        } else {
+            alert(fallbackMessage + ' Paste this URL into a new tab: ' + mailtoUrl);
+        }
+
+        // Keep modal open so user can use the visible fallback
+        return;
+    }
+
+    // If opened successfully, close the modal
     closeEmailModal();
 }
 
