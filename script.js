@@ -55,10 +55,14 @@ function attachEventListeners() {
     contactForm.addEventListener('submit', handleSubmit);
     cancelBtn.addEventListener('click', handleCancel);
     searchInput.addEventListener('input', handleSearch);
-    gridViewBtn.addEventListener('click', () => switchView('grid'));
-    listViewBtn.addEventListener('click', () => switchView('list'));
+    if (gridViewBtn) {
+        gridViewBtn.addEventListener('click', () => switchView('grid'));
+    }
+    if (listViewBtn) {
+        listViewBtn.addEventListener('click', () => switchView('list'));
+    }
     emailForm.addEventListener('submit', handleEmailSubmit);
-    
+
     // Close modal when clicking outside
     emailModal.addEventListener('click', (e) => {
         if (e.target === emailModal) {
@@ -70,24 +74,24 @@ function attachEventListeners() {
 // Handle form submission
 function handleSubmit(e) {
     e.preventDefault();
-    
+
     // Get input values
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
     const phone = phoneInput.value.trim();
-    
+
     // Validate inputs
     if (!name || !email || !phone) {
         alert('Please fill in all fields!');
         return;
     }
-    
+
     // Validate email format
     if (!isValidEmail(email)) {
         alert('Please enter a valid email address!');
         return;
     }
-    
+
     // Create contact object
     const contact = {
         id: Date.now(),
@@ -95,7 +99,7 @@ function handleSubmit(e) {
         email: email,
         phone: phone
     };
-    
+
     if (editingIndex === -1) {
         // Add new contact
         contacts.push(contact);
@@ -105,7 +109,7 @@ function handleSubmit(e) {
         editingIndex = -1;
         updateFormUI(false);
     }
-    
+
     // Save and render
     saveContacts();
     renderContacts();
@@ -147,24 +151,24 @@ function updateFormUI(isEditing) {
 // Switch between grid and list view
 function switchView(view) {
     currentView = view;
-    
+
     if (view === 'grid') {
         contactsList.classList.add('grid-view');
         contactsList.classList.remove('list-view');
-        gridViewBtn.classList.add('active');
-        listViewBtn.classList.remove('active');
+        if (gridViewBtn) gridViewBtn.classList.add('active');
+        if (listViewBtn) listViewBtn.classList.remove('active');
     } else {
         contactsList.classList.remove('grid-view');
         contactsList.classList.add('list-view');
-        gridViewBtn.classList.remove('active');
-        listViewBtn.classList.add('active');
+        if (gridViewBtn) gridViewBtn.classList.remove('active');
+        if (listViewBtn) listViewBtn.classList.add('active');
     }
 }
 
 // Render contacts list
 function renderContacts(filteredContacts = null) {
     const contactsToRender = filteredContacts || contacts;
-    
+
     // Show/hide empty state
     if (contactsToRender.length === 0) {
         contactsList.style.display = 'none';
@@ -174,10 +178,10 @@ function renderContacts(filteredContacts = null) {
         contactsList.style.display = 'flex';
         emptyState.style.display = 'none';
     }
-    
+
     // Clear the list
     contactsList.innerHTML = '';
-    
+
     // Render each contact
     contactsToRender.forEach((contact, index) => {
         const contactCard = createContactCard(contact, index);
@@ -191,10 +195,10 @@ function createContactCard(contact, index) {
     card.className = 'contact-card new-contact';
     card.draggable = true;
     card.dataset.index = index;
-    
+
     // Get initials for avatar
     const initials = getInitials(contact.name);
-    
+
     // Condensed view
     const condensedView = `
         <div class="contact-condensed" onclick="toggleCard(${index})">
@@ -203,7 +207,7 @@ function createContactCard(contact, index) {
             <div class="contact-preview">${escapeHtml(contact.email)}</div>
         </div>
     `;
-    
+
     // Expanded view
     const expandedView = `
         <div class="contact-expanded">
@@ -257,9 +261,9 @@ function createContactCard(contact, index) {
             </div>
         </div>
     `;
-    
+
     card.innerHTML = condensedView + expandedView;
-    
+
     // Add drag and drop event listeners
     card.addEventListener('dragstart', handleDragStart);
     card.addEventListener('dragover', handleDragOver);
@@ -267,12 +271,12 @@ function createContactCard(contact, index) {
     card.addEventListener('dragend', handleDragEnd);
     card.addEventListener('dragenter', handleDragEnter);
     card.addEventListener('dragleave', handleDragLeave);
-    
+
     // Remove animation class after animation completes
     setTimeout(() => {
         card.classList.remove('new-contact');
     }, 400);
-    
+
     return card;
 }
 
@@ -289,7 +293,7 @@ function getInitials(name) {
 function toggleCard(index) {
     const cards = document.querySelectorAll('.contact-card');
     const card = cards[index];
-    
+
     if (card) {
         // Close all other cards first
         cards.forEach((c, i) => {
@@ -297,7 +301,7 @@ function toggleCard(index) {
                 c.classList.remove('expanded');
             }
         });
-        
+
         // Toggle current card
         card.classList.toggle('expanded');
     }
@@ -307,12 +311,12 @@ function toggleCard(index) {
 function sendEmail(index) {
     const contact = contacts[index];
     currentEmailContact = contact;
-    
+
     // Pre-fill the email form
     emailTo.value = contact.email;
     emailSubject.value = `Hello ${contact.name}`;
     emailBody.value = `Hi ${contact.name},\n\nI hope this email finds you well.\n\nBest regards`;
-    
+
     // Show the modal
     emailModal.classList.add('active');
     // Hide any previous fallback link
@@ -326,20 +330,20 @@ function sendEmail(index) {
 // Handle email form submission
 function handleEmailSubmit(e) {
     e.preventDefault();
-    
+
     const recipient = encodeURIComponent(emailTo.value);
     const subject = encodeURIComponent(emailSubject.value.trim());
     const body = encodeURIComponent(emailBody.value.trim());
-    
+
     // Validate inputs
     if (!subject || !body) {
         alert('Please fill in both subject and message!');
         return;
     }
-    
+
     // Construct Gmail URL with user's custom content
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`;
-    
+
     // Try opening Gmail in a new tab. Some browsers/extensions may block popups.
     let opened = false;
 
@@ -376,8 +380,11 @@ function handleEmailSubmit(e) {
 
         let mailtoAttempted = false;
         try {
+            // Create an anchor with target to avoid navigating the current page
             const a2 = document.createElement('a');
             a2.href = mailtoUrl;
+            a2.target = '_blank';
+            a2.rel = 'noopener noreferrer';
             a2.style.display = 'none';
             document.body.appendChild(a2);
             a2.click();
@@ -398,11 +405,12 @@ function handleEmailSubmit(e) {
             gmailFallback.href = mailtoUrl;
             gmailFallback.textContent = 'Open default mail client';
             gmailFallbackContainer.style.display = 'block';
-            try { gmailFallback.focus(); } catch (e) {}
+            try { gmailFallback.focus(); } catch (e) { }
         }
 
         const fallbackMessage = 'Automatic opening failed. Click the "Open default mail client" button or paste the copied mailto URL into a new tab.';
 
+        console.debug('Fallback mailto URL:', mailtoUrl);
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(mailtoUrl).then(() => {
                 alert(fallbackMessage + ' The mailto URL was copied to your clipboard.');
@@ -438,16 +446,16 @@ function escapeHtml(text) {
 // Edit contact
 function editContact(index) {
     const contact = contacts[index];
-    
+
     // Populate form with contact data
     nameInput.value = contact.name;
     emailInput.value = contact.email;
     phoneInput.value = contact.phone;
-    
+
     // Set editing state
     editingIndex = index;
     updateFormUI(true);
-    
+
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
     nameInput.focus();
@@ -459,7 +467,7 @@ function deleteContact(index) {
         contacts.splice(index, 1);
         saveContacts();
         renderContacts();
-        
+
         // Reset form if editing the deleted contact
         if (editingIndex === index) {
             editingIndex = -1;
@@ -472,17 +480,17 @@ function deleteContact(index) {
 // Handle search
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase().trim();
-    
+
     if (searchTerm === '') {
         renderContacts();
         return;
     }
-    
+
     const filtered = contacts.filter(contact => {
         return contact.name.toLowerCase().includes(searchTerm) ||
-               contact.email.toLowerCase().includes(searchTerm);
+            contact.email.toLowerCase().includes(searchTerm);
     });
-    
+
     renderContacts(filtered);
 }
 
@@ -516,32 +524,32 @@ function handleDrop(e) {
     if (e.stopPropagation) {
         e.stopPropagation();
     }
-    
+
     e.currentTarget.classList.remove('drag-over');
-    
+
     const dropIndex = parseInt(e.currentTarget.dataset.index);
-    
+
     if (draggedIndex !== dropIndex && draggedIndex !== -1) {
         // Reorder array
         const draggedContact = contacts[draggedIndex];
         contacts.splice(draggedIndex, 1);
         contacts.splice(dropIndex, 0, draggedContact);
-        
+
         // Save and render
         saveContacts();
         renderContacts();
     }
-    
+
     return false;
 }
 
 function handleDragEnd(e) {
     e.currentTarget.classList.remove('dragging');
-    
+
     // Remove drag-over class from all cards
     const cards = document.querySelectorAll('.contact-card');
     cards.forEach(card => card.classList.remove('drag-over'));
-    
+
     draggedElement = null;
     draggedIndex = -1;
 }
